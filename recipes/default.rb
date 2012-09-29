@@ -22,67 +22,55 @@ case node['platform']
       command "yum -q makecache"
       action :nothing
     end
-
-    ruby_block "reload-internal-yum-cache" do
+    ruby_block "reload-yum-cache" do
       block do
         Chef::Provider::Package::Yum::YumCache.instance.reload
       end
       action :nothing
     end
-
     template "/etc/yum.repos.d/zend.repo" do
       source "zend.rpm.repo.erb"
       mode "0644"
       notifies :run, resources(:execute => "create-yum-cache"), :immediately
-      notifies :create, resources(:ruby_block => "reload-internal-yum-cache"), :immediately
+      notifies :create, resources(:ruby_block => "reload-yum-cache"), :immediately
     end
 
-    package "zend-server-php-#{node[:zend][:php][:version]}" do
-      action :install
-      provider Chef::Provider::Package::Yum
-    end
-##
   when "debian", "ubuntu"
-
     execute "zend-apt-gpg-key" do
       command "wget http://repos.zend.com/zend.key -O- | apt-key add -"
       action :run
     end
-
-    execute "update-apt-cache" do
-      command "apt-get -q -y update"
-      action :nothing
-    end
-
-    template "/etc/apt/sources.list.d/zend.list" do
-      source "zend.deb.repo.erb"
+    cookbook_file "/etc/apt/sources.list.d/zend.list" do
+      source "zend.deb.repo"
       mode "0644"
-      notifies :run, resources(:execute => "update-apt-cache"), :immediately
     end
+    execute "apt-get update"
 
-    apt_package "zend-server-php-#{node[:zend][:php][:version]}" do
-      action :install
+end
+
+package "#{node[:zend][:application]}" do
+  action [:install, :upgrade]
+end
+
+package "cli-tools-zend-server" do
+  action [:install, :upgrade]
+end
+
+case node[:zend][:install]
+  when "zs", "ce"
+    case node[:zend][:install]
+      when "zs"
+        options = node[:zend][:zs]
+      when "ce"
+        options = node[:zend][:ce]
     end
-##
-  when "suse"
-
-    execute "install_zend-server" do
-      command "zypper --no-cd -q -n install -l zend-server-php-#{node[:zend][:php][:version]}"
-      action :nothing
+    node[:zend][:packages].each do |name, actions|
+      package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
+        action actions
+      end
     end
-
-    execute "update-zypper-cache" do
-      command <<-EOF
-      rpm --import http://repos.zend.com/zend.key
-      zypper service-add http://repos.zend.com/zend-server/sles/ZendServer-#{node['kernel']['machine']} "ZendServer-#{node['kernel']['machine']}"
-      zypper service-add http://repos.zend.com/zend-server/sles/ZendServer-noarch "ZendServer-noarch"
-      zypper update
-      EOF
-      action :run
-      notifies :run, resources(:execute => "install_zend-server"), :immediately
-    end
-
-##
+  when "zcm"
+    options = node[:zend][:zcm]
 end
 
 service "zend" do
@@ -90,18 +78,14 @@ service "zend" do
   supports :status => true, :restart => true
   action [:enable, :start]
 end
-
-zend_command = "#{node[:zend][:zs_prefix]}/bin/zs-setup"
-
-if !node[:zend][:server][:accept_eula].nil?
-  execute "#{zend_command} accept-eula"
+unless options[:accept_eula].nil?
+  zend_eula "accept-eula"
 end
-
-if !node[:zend][:server][:gui_passwd].nil?
-  execute "#{zend_command} set-password #{node[:zend][:server][:gui_passwd]}"
+unless options[:order_id].nil?
+  zend_license "#{options[:order_id]}" do
+    license_key options[:zs_license_key]
+  end
 end
-
-if !node[:zend][:server][:order_id].nil? and !node[:zend][:server][:server_license_key].nil?
-  execute "#{zend_command} set-license #{node[:zend][:server][:order_id]} #{node[:zend][:server][:server_license_key]}"
+unless options[:gui_passwd].nil?
+  zend_password "#{options[:gui_passwd]}"
 end
-

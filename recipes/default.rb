@@ -57,11 +57,13 @@ package "cli-tools-zend-server" do
 end
 
 case node[:zend][:install]
-  when "zs", "ce"
+  when "zcm"
+    options = node[:zend][:zcm]
+  else
     case node[:zend][:install]
       when "zs"
         options = node[:zend][:zs]
-      when "ce"
+      else
         options = node[:zend][:ce]
     end
     node[:zend][:packages].each do |name, actions|
@@ -69,8 +71,6 @@ case node[:zend][:install]
         action actions
       end
     end
-  when "zcm"
-    options = node[:zend][:zcm]
 end
 
 service "zend" do

@@ -57,11 +57,13 @@ package "cli-tools-zend-server" do
 end
 
 case node[:zend][:install]
-  when "zs", "ce"
+  when "zcm"
+    options = node[:zend][:zcm]
+  else
     case node[:zend][:install]
       when "zs"
         options = node[:zend][:zs]
-      when "ce"
+      else
         options = node[:zend][:ce]
     end
     node[:zend][:packages].each do |name, actions|
@@ -69,8 +71,22 @@ case node[:zend][:install]
         action actions
       end
     end
-  when "zcm"
-    options = node[:zend][:zcm]
+end
+
+cookbook_file "/etc/profile.d/zend.sh" do
+  source "profile.sh"
+end
+
+template "/etc/logrotate.d/zend" do
+  source "logrotate.erb"
+  variables(
+    :size => node[:zend][:log_rotate][:size],
+    :rotate => node[:zend][:log_rotate][:rotate]
+  )
+end
+
+directory "/var/log/apache2/" do
+  mode "0755"
 end
 
 service "zend" do

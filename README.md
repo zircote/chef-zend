@@ -1,12 +1,15 @@
 Description
 ===========
 
-Installs and configures [Zend Server](http://www.zend.com/en/products/server/)
+Installs and configures
+ - [Zend Server Community Edition](http://www.zend.com/en/products/server-ce/)
+ - [Zend Server](http://www.zend.com/en/products/server/)
+ - [Zend Server Cluster Manager](http://www.zend.com/en/products/server/multi-server-support)
 
 Requirements
 ============
 
-`zend` cookbook
+#### `zend` cookbook
 
 Tested on
  - Ubuntu 12.04LTS x86_64
@@ -21,7 +24,7 @@ Attributes
 # ce: Zend Server Community Edition
 # zcm: Zend Server Cluster Manager
 default[:zend][:install] = "zs" # zs|ce|zcm
-# 5.2|5.3|5.4?
+# 5.2|5.3
 # default[:zend][:php][:version] = "5.2"
 default[:zend][:php][:version] = "5.3"
 ```

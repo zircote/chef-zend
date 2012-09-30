@@ -1,3 +1,20 @@
+#
+# Cookbook Name:: zend
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 # zs: Zend Server
 # ce: Zend Server Community Edition
 # zcm: Zend Server Cluster Manager
@@ -5,6 +22,13 @@ default[:zend][:install] = "ce"
 # 5.2|5.3|5.4?
 # default[:zend][:php][:version] = "5.2"
 default[:zend][:php][:version] = "5.3"
+
+# Enable Logrotation
+default[:zend][:log_rotate][:enable] = true
+# file size to rotate
+default[:zend][:log_rotate][:size] = "5M"
+# keep up to {x} backup files
+default[:zend][:log_rotate][:rotate] = 10
 
 case node[:zend][:install]
   when "zcm"
@@ -51,13 +75,6 @@ case node[:zend][:install]
       when "ubuntu", "debian"
         default[:zend][:packages]['libframework1'] = [:nothing]
         default[:zend][:packages]['libinformix'] = [:nothing]
-        default[:zend][:packages]['bin'] = [:nothing]
-        default[:zend][:packages]['dev'] = [:nothing]
-        default[:zend][:packages]['fcgi'] = [:nothing]
-        default[:zend][:packages]['gui'] = [:nothing]
-        default[:zend][:packages]['javamw'] = [:nothing]
-        default[:zend][:packages]['loader'] = [:nothing]
-        default[:zend][:packages]['source'] = [:nothing]
         default[:zend][:packages]['xdebug'] = [:nothing]
         default[:zend][:packages]['phpmyadmin'] = [:nothing]
     end

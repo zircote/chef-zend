@@ -1,0 +1,8 @@
+/usr/local/zend/var/log/*.log {
+    size <%= :size %>
+    missingok
+    rotate <%= :rotate %>
+    compress
+    delaycompress
+    copytruncate
+}

@@ -27,5 +27,5 @@ version          "0.2.0"
   supports os
 end
 
-recipe "zend", "Zend Server Installation, versions: communit edition, zend server, zend server cluster manager"
+recipe "zend", "Zend Server Installation, versions: community edition, zend server, zend server cluster manager"
 

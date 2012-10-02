@@ -1,0 +1,38 @@
+{
+  "name": "zend",
+  "description": "Installs/Configures Zend Server",
+  "long_description": "Description\n===========\n\nInstalls and configures\n - [Zend Server Community Edition](http://www.zend.com/en/products/server-ce/)\n - [Zend Server](http://www.zend.com/en/products/server/)\n - [Zend Server Cluster Manager](http://www.zend.com/en/products/server/multi-server-support)\n\nRequirements\n============\n\n#### `zend` cookbook\n\nTested on\n - Ubuntu 12.04LTS x86_64\n - Centos 6.3 x86_64\n\n\nAttributes\n==========\n\n```ruby\n# zs: Zend Server\n# ce: Zend Server Community Edition\n# zcm: Zend Server Cluster Manager\ndefault[:zend][:install] = \"zs\" # zs|ce|zcm\n# 5.2|5.3\n# default[:zend][:php][:version] = \"5.2\"\ndefault[:zend][:php][:version] = \"5.3\"\n```\n\n### Zend Server Settings\n\nCluster manager settings, license, order id, password and eula acceptance.\n\n```ruby\ndefault[:zend][:zs][:gui_passwd] = \"vagrant\"\ndefault[:zend][:zs][:accept_eula] = nil\ndefault[:zend][:zs][:order_id] = nil\ndefault[:zend][:zs][:zs_license_key] = nil\n# true to join the cluster manager\ndefault[:zend][:zs][:cluster_manager][:add_server] = false\n# name to give new server (required)\ndefault[:zend][:zs][:cluster_manager][:name] = nil\n# new server's GUI password (required)\ndefault[:zend][:zs][:cluster_manager][:password] = nil\n# Web API key name (required)\ndefault[:zend][:zs][:cluster_manager][:key_name] = nil\n# Web API secret key (required)\ndefault[:zend][:zs][:cluster_manager][:secret_key] = nil\n# https://zcm_host:10082/ZendServerManager\n# http://zcm_host:10081/ZendServerManager\n# new server's full ZS GUI URL (required)\ndefault[:zend][:zs][:cluster_manager][:url] = \"http://localhost:10081/ZendServerManager\"\n# do not restart PHP after adding this server (PHP is restarted by default)\ndefault[:zend][:zs][:cluster_manager][:restart] = true\n# propagate the new server's settings to the entire cluster\ndefault[:zend][:zs][:cluster_manager][:propagate] = true\n# retry action <value> times if server is locked; default is 3\ndefault[:zend][:zs][:cluster_manager][:server_retry] = 3\n# wait <value> seconds between retires; default is 5\ndefault[:zend][:zs][:cluster_manager][:wait] = 5\n```\n\n### Optional package selections\n\n```ruby\n# To install the package(s)\ndefault[:zend][:packages]['ssh2'] = [:install]\n# To remove the package(s)\ndefault[:zend][:packages]['ssh2'] = [:remove]\n# to install and/or upgrade the package(s)\ndefault[:zend][:packages]['ssh2'] = [:install, :upgrade]\n```\n\n## Resources\n\n`zend_cluster`\n\n```ruby\nzend_cluster \"my-zend-server-name\" do\n  zs_url \"http://localhost:10081/ZendServer\" # optional\n  password \"vagrant\"\n  server_retry 10 # optional\n  wait 5 # optional\n  restart false # optional\n  propagate false # optional\n  zcm_url \"http://zcm.localhost.local:10081/ZendServerManager\"\n  key_name \"zircote-api-key\"\n  secret_key node[:zend][:zs][:cluster_manager][:secret_key]\nend\n```\n\n`zend_eula`\n\n```ruby\nzend_eula \"accept-my-eula\"\n```\n\n`zend_license`\n\n```ruby\nzend_license \"#{node[:zend][:zs][:order_id]} do\n  license_key node[:zend][:zs][:license_key]\n  # optionally you may specify the order_id\n  order_id node[:zend][:zs][:order_id]\nend\n```\n\n`zend_password`\n\n```ruby\nzend_password \"#{node[:zend][:zs][:gui_passwd]}\"\n```\n\n\n### Using with vagrant\n\n```ruby\nVagrant::Config.run do |config|\n    config.vm.box = \"precise64\"\n    config.vm.provision :chef_solo do |chef|\n      chef.cookbooks_path = \"cookbooks\"\n      chef.roles_path = \"roles\"\n      chef.data_bags_path = \"bags\"\n      chef.add_recipe \"zend\"\n      chef.json = {\n          :zend => {\n              :install => \"zs\",\n              :packages => {\n                  'pdo-mysql' => :install,\n                  'mysqli' => :install,\n                  'curl' => :install,\n                  'ssh2' => :install,\n                  'xdebug' => :install,\n                  'mongo' => :install,\n                  'xsl' => :install,\n                  'json' => :install,\n                  'sockets' => :install,\n                  'phar' => :install\n              },\n              :php => {\n                  :version => \"5.3\"\n              },\n              :zs => {\n                  :accept_eula => true,\n                  :gui_passwd => \"vagrant\",\n                  :order_id => \"US-9999-99\",\n                  :zs_license_key => \"xxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n              }\n          }\n      }\n    end\n  end\n```\n",
+  "maintainer": "Robert Allen",
+  "maintainer_email": "zircote@gmail.com",
+  "license": "Apache 2.0",
+  "platforms": {
+    "debian": ">= 0.0.0",
+    "ubuntu": ">= 0.0.0",
+    "centos": ">= 0.0.0",
+    "redhat": ">= 0.0.0",
+    "fedora": ">= 0.0.0",
+    "scientific": ">= 0.0.0",
+    "amazon": ">= 0.0.0",
+    "suse": ">= 0.0.0"
+  },
+  "dependencies": {
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "zend": "Zend Server Installation, versions: community edition, zend server, zend server cluster manager"
+  },
+  "version": "0.2.0"
+}

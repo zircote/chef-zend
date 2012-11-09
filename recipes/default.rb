@@ -16,6 +16,18 @@
 # limitations under the License.
 #
 
+case node['zend']['install']
+  when "zcm"
+    node[:zend][:application] = "zend-server-cluster-manager"
+  else
+    case node['zend']['install']
+      when "zs"
+        node[:zend][:application] = "zend-server-php-#{node[:zend][:php][:version]}"
+      else
+        node[:zend][:application] = "zend-server-ce-php-#{node[:zend][:php][:version]}"
+    end
+end
+
 case node['platform']
   when "centos", "redhat", "fedora", "scientific", "amazon"
     execute "create-yum-cache" do
@@ -66,9 +78,12 @@ case node[:zend][:install]
       else
         options = node[:zend][:ce]
     end
+
     node[:zend][:packages].each do |name, actions|
-      package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
-        action actions
+      unless actions.to_s == 'nothing'
+        package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
+          action actions
+        end
       end
     end
 end
@@ -80,8 +95,8 @@ end
 template "/etc/logrotate.d/zend" do
   source "logrotate.erb"
   variables(
-    :size => node[:zend][:log_rotate][:size],
-    :rotate => node[:zend][:log_rotate][:rotate]
+      :size => node[:zend][:log_rotate][:size],
+      :rotate => node[:zend][:log_rotate][:rotate]
   )
 end
 

@@ -16,6 +16,18 @@
 # limitations under the License.
 #
 
+case node['zend']['install']
+  when "zend-cluster-manager"
+    node[:zend][:application] = "zend-server-cluster-manager"
+  else
+    case node['zend']['install']
+      when "zend-server"
+        node[:zend][:application] = "zend-server-php-#{node[:zend][:php][:version]}"
+      else
+        node[:zend][:application] = "zend-server-ce-php-#{node[:zend][:php][:version]}"
+    end
+end
+
 case node['platform']
   when "centos", "redhat", "fedora", "scientific", "amazon"
     execute "create-yum-cache" do
@@ -56,21 +68,14 @@ package "cli-tools-zend-server" do
   action [:install, :upgrade]
 end
 
-case node[:zend][:install]
-  when "zcm"
-    options = node[:zend][:zcm]
-  else
-    case node[:zend][:install]
-      when "zs"
-        options = node[:zend][:zs]
-      else
-        options = node[:zend][:ce]
-    end
-    node[:zend][:packages].each do |name, actions|
+unless node[:zend][:application] == "zend-server-cluster-manager"
+  node[:zend][:packages].each do |name, actions|
+    unless actions.to_s == 'nothing'
       package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
         action actions
       end
     end
+  end
 end
 
 cookbook_file "/etc/profile.d/zend.sh" do
@@ -80,8 +85,8 @@ end
 template "/etc/logrotate.d/zend" do
   source "logrotate.erb"
   variables(
-    :size => node[:zend][:log_rotate][:size],
-    :rotate => node[:zend][:log_rotate][:rotate]
+      :size => node[:zend][:log_rotate][:size],
+      :rotate => node[:zend][:log_rotate][:rotate]
   )
 end
 
@@ -89,19 +94,23 @@ directory "/var/log/apache2/" do
   mode "0755"
 end
 
+
+unless node[:zend][:accept_eula].nil?
+  zend_eula "accept-eula"
+end
+
+unless node[:zend][:order_id].nil?
+  zend_license "#{node[:zend][:order_id]}" do
+    license_key "#{node[:zend][:license_key]}"
+  end
+end
+
+unless node[:zend][:gui_passwd].nil?
+  zend_password "#{node[:zend][:gui_passwd]}"
+end
+
 service "zend" do
   service_name "zend-server"
   supports :status => true, :restart => true
-  action [:enable, :start]
-end
-unless options[:accept_eula].nil?
-  zend_eula "accept-eula"
-end
-unless options[:order_id].nil?
-  zend_license "#{options[:order_id]}" do
-    license_key options[:zs_license_key]
-  end
-end
-unless options[:gui_passwd].nil?
-  zend_password "#{options[:gui_passwd]}"
+  action [:enable, :start, :restart]
 end

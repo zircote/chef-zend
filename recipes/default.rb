@@ -17,11 +17,11 @@
 #
 
 case node['zend']['install']
-  when "zcm"
+  when "zend-cluster-manager"
     node[:zend][:application] = "zend-server-cluster-manager"
   else
     case node['zend']['install']
-      when "zs"
+      when "zend-server"
         node[:zend][:application] = "zend-server-php-#{node[:zend][:php][:version]}"
       else
         node[:zend][:application] = "zend-server-ce-php-#{node[:zend][:php][:version]}"
@@ -68,24 +68,14 @@ package "cli-tools-zend-server" do
   action [:install, :upgrade]
 end
 
-case node[:zend][:install]
-  when "zcm"
-    options = node[:zend][:zcm]
-  else
-    case node[:zend][:install]
-      when "zs"
-        options = node[:zend][:zs]
-      else
-        options = node[:zend][:ce]
-    end
-
-    node[:zend][:packages].each do |name, actions|
-      unless actions.to_s == 'nothing'
-        package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
-          action actions
-        end
+unless node[:zend][:application] == "zend-server-cluster-manager"
+  node[:zend][:packages].each do |name, actions|
+    unless actions.to_s == 'nothing'
+      package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
+        action actions
       end
     end
+  end
 end
 
 cookbook_file "/etc/profile.d/zend.sh" do
@@ -104,19 +94,28 @@ directory "/var/log/apache2/" do
   mode "0755"
 end
 
+
+unless node[:zend][:accept_eula].nil?
+  zend_eula "accept-eula"
+end
+
+unless node[:zend][:order_id].nil? and node[:install] == "zend-ce"
+  zend_license "#{node[:zend][:order_id]}" do
+    license_key "#{node[:zend][:license_key]}"
+  end
+end
+
+unless node[:zend][:gui_passwd].nil?
+  zend_password "#{node[:zend][:gui_passwd]}"
+end
+
 service "zend" do
   service_name "zend-server"
   supports :status => true, :restart => true
-  action [:enable, :start]
+  action [:enable, :start, :restart]
 end
-unless options[:accept_eula].nil?
-  zend_eula "accept-eula"
+
+if node[:zend][:cluster_manager][:add_server] and node[:install] == "zend-server"
+  zend_cluster node['hostname']
 end
-unless options[:order_id].nil?
-  zend_license "#{options[:order_id]}" do
-    license_key options[:zs_license_key]
-  end
-end
-unless options[:gui_passwd].nil?
-  zend_password "#{options[:gui_passwd]}"
-end
+

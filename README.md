@@ -20,12 +20,11 @@ Attributes
 ==========
 
 ```ruby
-# zs: Zend Server
-# ce: Zend Server Community Edition
-# zcm: Zend Server Cluster Manager
-default[:zend][:install] = "zs" # zs|ce|zcm
+# zend-server: Zend Server
+# zend-ce: Zend Server Community Edition
+# zend-cluster-manager: Zend Server Cluster Manager
+default[:zend][:install] = "zend-server" # zs|ce|zcm
 # 5.2|5.3
-# default[:zend][:php][:version] = "5.2"
 default[:zend][:php][:version] = "5.3"
 ```
 
@@ -34,32 +33,29 @@ default[:zend][:php][:version] = "5.3"
 Cluster manager settings, license, order id, password and eula acceptance.
 
 ```ruby
-default[:zend][:zs][:gui_passwd] = "vagrant"
-default[:zend][:zs][:accept_eula] = nil
-default[:zend][:zs][:order_id] = nil
-default[:zend][:zs][:zs_license_key] = nil
-# true to join the cluster manager
-default[:zend][:zs][:cluster_manager][:add_server] = false
+# Cluster Manager Membership Provisioning.
+default[:zend][:cluster_manager][:add_server] = false
 # name to give new server (required)
-default[:zend][:zs][:cluster_manager][:name] = nil
+default[:zend][:cluster_manager][:name] = nil
 # new server's GUI password (required)
-default[:zend][:zs][:cluster_manager][:password] = nil
+default[:zend][:cluster_manager][:password] = nil
 # Web API key name (required)
-default[:zend][:zs][:cluster_manager][:key_name] = nil
+default[:zend][:cluster_manager][:key_name] = nil
 # Web API secret key (required)
-default[:zend][:zs][:cluster_manager][:secret_key] = nil
+default[:zend][:cluster_manager][:secret_key] = nil
 # https://zcm_host:10082/ZendServerManager
 # http://zcm_host:10081/ZendServerManager
 # new server's full ZS GUI URL (required)
-default[:zend][:zs][:cluster_manager][:url] = "http://localhost:10081/ZendServerManager"
+default[:zend][:cluster_manager][:url] = "http://localhost:10081/ZendServerManager"
 # do not restart PHP after adding this server (PHP is restarted by default)
-default[:zend][:zs][:cluster_manager][:restart] = true
+default[:zend][:cluster_manager][:restart] = true
 # propagate the new server's settings to the entire cluster
-default[:zend][:zs][:cluster_manager][:propagate] = true
+default[:zend][:cluster_manager][:propagate] = true
 # retry action <value> times if server is locked; default is 3
-default[:zend][:zs][:cluster_manager][:server_retry] = 3
+default[:zend][:cluster_manager][:server_retry] = 3
 # wait <value> seconds between retires; default is 5
-default[:zend][:zs][:cluster_manager][:wait] = 5
+default[:zend][:cluster_manager][:wait] = 5
+
 ```
 
 ### Optional package selections
@@ -87,7 +83,7 @@ zend_cluster "my-zend-server-name" do
   propagate false # optional
   zcm_url "http://zcm.localhost.local:10081/ZendServerManager"
   key_name "zircote-api-key"
-  secret_key node[:zend][:zs][:cluster_manager][:secret_key]
+  secret_key node[:zend][:cluster_manager][:secret_key]
 end
 ```
 
@@ -100,17 +96,17 @@ zend_eula "accept-my-eula"
 `zend_license`
 
 ```ruby
-zend_license "#{node[:zend][:zs][:order_id]} do
-  license_key node[:zend][:zs][:license_key]
+zend_license "#{node[:zend][:order_id]} do
+  license_key node[:zend][:license_key]
   # optionally you may specify the order_id
-  order_id node[:zend][:zs][:order_id]
+  order_id node[:zend][:order_id]
 end
 ```
 
 `zend_password`
 
 ```ruby
-zend_password "#{node[:zend][:zs][:gui_passwd]}"
+zend_password "#{node[:zend][:gui_passwd]}"
 ```
 
 
@@ -126,7 +122,7 @@ Vagrant::Config.run do |config|
       chef.add_recipe "zend"
       chef.json = {
           :zend => {
-              :install => "zs",
+              :install => "zend-server",
               :packages => {
                   'pdo-mysql' => :install,
                   'mysqli' => :install,
@@ -142,12 +138,10 @@ Vagrant::Config.run do |config|
               :php => {
                   :version => "5.3"
               },
-              :zs => {
-                  :accept_eula => true,
-                  :gui_passwd => "vagrant",
-                  :order_id => "US-9999-99",
-                  :zs_license_key => "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              }
+              :accept_eula => true,
+              :gui_passwd => "vagrant",
+              :order_id => "US-9999-99",
+              :license_key => "xxxxxxxxxxxxxxxxxxxxxxxxxxx"
           }
       }
     end

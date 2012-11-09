@@ -14,14 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# zs: Zend Server
-# ce: Zend Server Community Edition
-# zcm: Zend Server Cluster Manager
-default[:zend][:install] = "ce"
+# zend-server: Zend Server
+# zend-ce: Zend Server Community Edition
+# zend-cluster-manager: Zend Server Cluster Manager
+default[:zend][:install] = "zend-ce"
 # 5.2|5.3|5.4?
-# default[:zend][:php][:version] = "5.2"
 default[:zend][:php][:version] = "5.3"
+default[:zend][:application] = "zend-server-ce-php-5.3"
 
 # Enable Logrotation
 default[:zend][:log_rotate][:enable] = true
@@ -29,45 +28,39 @@ default[:zend][:log_rotate][:enable] = true
 default[:zend][:log_rotate][:size] = "5M"
 # keep up to {x} backup files
 default[:zend][:log_rotate][:rotate] = 10
+# Provisioning for License and Password
+default[:zend][:gui_passwd] = "vagrant"
+default[:zend][:accept_eula] = false
+default[:zend][:order_id] = nil
+default[:zend][:license_key] = nil
 
-default[:zend][:application] = "zend-server-ce-php-53"
-
-default[:zend][:zcm][:gui_passwd] = "vagrant"
-default[:zend][:zcm][:accept_eula] = false
-default[:zend][:zcm][:order_id] = nil
-default[:zend][:zcm][:zcm_license_key] = nil
-# Zs
-default[:zend][:zs][:gui_passwd] = "vagrant"
-default[:zend][:zs][:accept_eula] = false
-default[:zend][:zs][:order_id] = nil
-default[:zend][:zs][:zs_license_key] = nil
-default[:zend][:zs][:cluster_manager][:add_server] = true
+# Cluster Manager Membership Provisioning.
+default[:zend][:cluster_manager][:add_server] = false
 # name to give new server (required)
-default[:zend][:zs][:cluster_manager][:name] = nil
+default[:zend][:cluster_manager][:name] = nil
 # new server's GUI password (required)
-default[:zend][:zs][:cluster_manager][:password] = nil
+default[:zend][:cluster_manager][:password] = nil
 # Web API key name (required)
-default[:zend][:zs][:cluster_manager][:key_name] = nil
+default[:zend][:cluster_manager][:key_name] = nil
 # Web API secret key (required)
-default[:zend][:zs][:cluster_manager][:secret_key] = nil
+default[:zend][:cluster_manager][:secret_key] = nil
 # https://zcm_host:10082/ZendServerManager
 # http://zcm_host:10081/ZendServerManager
 # new server's full ZS GUI URL (required)
-default[:zend][:zs][:cluster_manager][:url] = "http://localhost:10081/ZendServerManager"
+default[:zend][:cluster_manager][:url] = "http://localhost:10081/ZendServerManager"
 # do not restart PHP after adding this server (PHP is restarted by default)
-default[:zend][:zs][:cluster_manager][:restart] = true
+default[:zend][:cluster_manager][:restart] = true
 # propagate the new server's settings to the entire cluster
-default[:zend][:zs][:cluster_manager][:propagate] = true
+default[:zend][:cluster_manager][:propagate] = true
 # retry action <value> times if server is locked; default is 3
-default[:zend][:zs][:cluster_manager][:server_retry] = 3
+default[:zend][:cluster_manager][:server_retry] = 3
 # wait <value> seconds between retires; default is 5
-default[:zend][:zs][:cluster_manager][:wait] = 5
+default[:zend][:cluster_manager][:wait] = 5
+
 
 case node['platform']
   when "debian", "ubuntu"
     #Ubuntu/Debian
-    default[:zend][:zce][:gui_passwd] = "vagrant"
-    default[:zend][:zce][:accept_eula] = false
     default[:zend][:packages]['libframework1'] = [:nothing]
     default[:zend][:packages]['libinformix'] = [:nothing]
     default[:zend][:packages]['xdebug'] = [:nothing]

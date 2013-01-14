@@ -71,8 +71,14 @@ end
 unless node[:zend][:application] == "zend-server-cluster-manager"
   node[:zend][:packages].each do |name, actions|
     unless actions.to_s == 'nothing'
-      package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
-        action actions
+      if name == 'phpmyadmin'
+        package "#{name}-zend-server" do
+                action actions
+        end
+      else
+        package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
+                action actions
+        end
       end
     end
   end
@@ -99,7 +105,7 @@ unless node[:zend][:accept_eula].nil?
   zend_eula "accept-eula"
 end
 
-unless node[:zend][:order_id].nil? and node[:install] == "zend-ce"
+unless node[:zend][:order_id].nil? and node[:zend][:install] == "zend-ce"
   zend_license "#{node[:zend][:order_id]}" do
     license_key "#{node[:zend][:license_key]}"
   end

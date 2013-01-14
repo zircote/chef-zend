@@ -71,8 +71,14 @@ end
 unless node[:zend][:application] == "zend-server-cluster-manager"
   node[:zend][:packages].each do |name, actions|
     unless actions.to_s == 'nothing'
-      package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
-        action actions
+      if name == 'phpmyadmin'
+        package "#{name}-zend-server" do
+                action actions
+        end
+      else
+        package "php-#{node[:zend][:php][:version]}-#{name}-zend-server" do
+                action actions
+        end
       end
     end
   end

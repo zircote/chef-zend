@@ -105,7 +105,7 @@ unless node[:zend][:accept_eula].nil?
   zend_eula "accept-eula"
 end
 
-unless node[:zend][:order_id].nil? and node[:install] == "zend-ce"
+unless node[:zend][:order_id].nil? and node[:zend][:install] == "zend-ce"
   zend_license "#{node[:zend][:order_id]}" do
     license_key "#{node[:zend][:license_key]}"
   end
